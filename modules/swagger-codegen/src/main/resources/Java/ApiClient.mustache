@@ -77,6 +77,15 @@ public class ApiClient {
   }
 
   /**
+   * Set the timeout for API calls.
+   *
+   * @param timeout                 Time to wait until response is received, in ms
+   */
+  public void setTimeout(Integer timeout) {
+    getClient().setReadTimeout(timeout);
+  }
+
+  /**
    * Gets the JSON instance to do JSON serialization and deserialization.
    */
   public JSON getJSON() {
