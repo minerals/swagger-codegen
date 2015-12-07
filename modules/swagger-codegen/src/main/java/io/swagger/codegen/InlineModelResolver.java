@@ -46,7 +46,8 @@ public class InlineModelResolver {
                                     Model model = bp.getSchema();
                                     if(model instanceof ModelImpl) {
                                         ModelImpl obj = (ModelImpl) model;
-                                        if (obj.getType() == null || "object".equals(obj.getType())) {
+                                        if (obj.getProperties() != null &&
+                                           (obj.getType() == null || "object".equals(obj.getType()))) {
                                             String modelName = uniqueName(bp.getName());
                                             flattenProperties(obj.getProperties(), pathname);
 
@@ -75,16 +76,18 @@ public class InlineModelResolver {
                             if (response.getSchema() != null) {
                                 Property property = response.getSchema();
                                 if (property instanceof ObjectProperty) {
-                                    String modelName = uniqueName("inline_response_" + key);
                                     ObjectProperty op = (ObjectProperty) property;
-                                    Model model = modelFromProperty(op, modelName);
-                                    String existing = matchGenerated(model);
-                                    if (existing != null) {
-                                        response.setSchema(new RefProperty(existing));
-                                    } else {
-                                        response.setSchema(new RefProperty(modelName));
-                                        addGenerated(modelName, model);
-                                        swagger.addDefinition(modelName, model);
+                                    if (op.getProperties() != null) {
+                                        String modelName = uniqueName("inline_response_" + key);
+                                        Model model = modelFromProperty(op, modelName);
+                                        String existing = matchGenerated(model);
+                                        if (existing != null) {
+                                            response.setSchema(new RefProperty(existing));
+                                        } else {
+                                            response.setSchema(new RefProperty(modelName));
+                                            addGenerated(modelName, model);
+                                            swagger.addDefinition(modelName, model);
+                                        }
                                     }
                                 } else if (property instanceof ArrayProperty) {
                                     ArrayProperty ap = (ArrayProperty) property;
