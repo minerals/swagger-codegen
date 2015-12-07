@@ -214,6 +214,7 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
 
         final String invokerFolder = (sourceFolder + '/' + invokerPackage).replace(".", "/");
         supportingFiles.add(new SupportingFile("pom.mustache", "", "pom.xml"));
+        supportingFiles.add(new SupportingFile("generated.info.mustache", "", "generated.info"));
         if (includeReadme) {
             supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         }
