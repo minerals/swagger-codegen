@@ -54,6 +54,8 @@ public class JavaClientOptionsTest extends AbstractOptionsTest {
             times = 1;
             clientCodegen.setFullJavaUtil(Boolean.valueOf(JavaOptionsProvider.FULL_JAVA_UTIL_VALUE));
             times = 1;
+            clientCodegen.setIncludeReadme(Boolean.valueOf(JavaOptionsProvider.INCLUDE_README_VALUE));
+            times = 1;
         }};
     }
 }

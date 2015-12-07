@@ -21,6 +21,7 @@ public class JavaOptionsProvider implements OptionsProvider {
     public static final String SERIALIZABLE_MODEL_VALUE = "false";
     public static final String FULL_JAVA_UTIL_VALUE = "true";
     public static final String ENSURE_UNIQUE_PARAMS_VALUE = "true";
+    public static final String INCLUDE_README_VALUE = "true";
 
     @Override
     public Map<String, String> createOptions() {
@@ -37,6 +38,7 @@ public class JavaOptionsProvider implements OptionsProvider {
                 .put(CodegenConstants.LOCAL_VARIABLE_PREFIX, LOCAL_PREFIX_VALUE)
                 .put(CodegenConstants.SERIALIZABLE_MODEL, SERIALIZABLE_MODEL_VALUE)
                 .put(JavaClientCodegen.FULL_JAVA_UTIL, FULL_JAVA_UTIL_VALUE)
+                .put(JavaClientCodegen.INCLUDE_README, INCLUDE_README_VALUE)
                 .put(CodegenConstants.LIBRARY, LIBRARY_VALUE)
                 .build();
     }

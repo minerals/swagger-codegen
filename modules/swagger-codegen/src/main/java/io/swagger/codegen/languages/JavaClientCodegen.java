@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaClientCodegen.class);
     public static final String FULL_JAVA_UTIL = "fullJavaUtil";
+    public static final String INCLUDE_README = "includeReadme";
     public static final String DEFAULT_LIBRARY = "<default>";
 
     protected String invokerPackage = "io.swagger.client";
@@ -47,6 +48,7 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String localVariablePrefix = "";
     protected boolean fullJavaUtil = false;
+    protected boolean includeReadme = true;
     protected String javaUtilPrefix = "";
     protected Boolean serializableModel = false;
 
@@ -96,6 +98,8 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
         cliOptions.add(new CliOption(CodegenConstants.SERIALIZABLE_MODEL, CodegenConstants.SERIALIZABLE_MODEL_DESC));
         cliOptions.add(new CliOption(FULL_JAVA_UTIL, "whether to use fully qualified name for classes under java.util")
                 .defaultValue("false"));
+        cliOptions.add(new CliOption(INCLUDE_README, "whether to generate a README file for the client")
+                .defaultValue("true"));
 
         supportedLibraries.put(DEFAULT_LIBRARY, "HTTP client: Jersey client 1.18. JSON processing: Jackson 2.4.2");
         supportedLibraries.put("jersey2", "HTTP client: Jersey client 2.6");
@@ -202,11 +206,17 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
             instantiationTypes.put("map", "java.util.HashMap");
         }
 
+        if (additionalProperties.containsKey(INCLUDE_README)) {
+            this.setIncludeReadme(Boolean.valueOf(additionalProperties.get(INCLUDE_README).toString()));
+        }
+
         this.sanitizeConfig();
 
         final String invokerFolder = (sourceFolder + '/' + invokerPackage).replace(".", "/");
         supportingFiles.add(new SupportingFile("pom.mustache", "", "pom.xml"));
-        supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
+        if (includeReadme) {
+            supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
+        }
         supportingFiles.add(new SupportingFile("build.gradle.mustache", "", "build.gradle"));
         supportingFiles.add(new SupportingFile("settings.gradle.mustache", "", "settings.gradle"));
         supportingFiles.add(new SupportingFile("gradle.properties.mustache", "", "gradle.properties"));
@@ -596,7 +606,7 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
                     }
                 }
             }
-            
+
             if(removedChildEnum) {
                 // If we removed an entry from this model's vars, we need to ensure hasMore is updated
                 int count = 0, numVars = codegenProperties.size();
@@ -655,5 +665,9 @@ public class JavaClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     public void setFullJavaUtil(boolean fullJavaUtil) {
         this.fullJavaUtil = fullJavaUtil;
+    }
+
+    public void setIncludeReadme(boolean includeReadme) {
+        this.includeReadme = includeReadme;
     }
 }
