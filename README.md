@@ -216,6 +216,22 @@ java -jar modules/swagger-codegen-cli/target/swagger-codegen-cli.jar meta \
 
 This will write, in the folder `output/myLibrary`, all the files you need to get started, including a README.md. Once modified and compiled, you can load your library with the codegen and generate clients with your own, custom-rolled logic.
 
+You would then compile your library in the `output/myLibrary` folder with `mvn package` and execute the codegen like such:
+
+
+```
+java -cp output/myLibrary/target/myClientCodegen-swagger-codegen-1.0.0.jar:modules/swagger-codegen-cli/target/swagger-codegen-cli.jar io.swagger.codegen.Codegen
+```
+
+Note the `myClientCodegen` is an option now, and you can use the usual arguments for generating your library:
+
+```
+java -cp output/myLibrary/target/myClientCodegen-swagger-codegen-1.0.0.jar:modules/swagger-codegen-cli/target/swagger-codegen-cli.jar \
+  io.swagger.codegen.Codegen generate -l myClientCodegen\
+  -i http://petstore.swagger.io/v2/swagger.json \
+  -o myClient
+```
+
 ### Where is Javascript???
 See our [javascript library](http://github.com/swagger-api/swagger-js)--it's completely dynamic and doesn't require
 static code generation.
@@ -283,6 +299,7 @@ JavaClientCodegen.java
 JavaInflectorServerCodegen.java
 JavascriptClientCodegen.java
 JaxRSServerCodegen.java
+JMeterCodegen.java
 NodeJSServerCodegen.java
 ObjcClientCodegen.java
 PerlClientCodegen.java
@@ -360,9 +377,10 @@ CONFIG OPTIONS
 	    library template (sub-template) to use:
 	    <default> - HTTP client: Jersey client 1.18. JSON processing: Jackson 2.4.2
 	    jersey2 - HTTP client: Jersey client 2.6
+	    feign - HTTP client: Netflix Feign 8.1.1.  JSON processing: Jackson 2.6.3
 	    okhttp-gson - HTTP client: OkHttp 2.4.0. JSON processing: Gson 2.3.1
 	    retrofit - HTTP client: OkHttp 2.4.0. JSON processing: Gson 2.3.1 (Retrofit 1.9.0)
-      retrofit2 - HTTP client: OkHttp 2.5.0. JSON processing: Gson 2.4 (Retrofit 2.0.0-beta2)
+        retrofit2 - HTTP client: OkHttp 2.5.0. JSON processing: Gson 2.4 (Retrofit 2.0.0-beta2)
 ```
 
 Your config file for java can look like
@@ -371,7 +389,8 @@ Your config file for java can look like
 {
   "groupId":"com.my.company",
   "artifactId":"MyClent",
-  "artifactVersion":"1.2.0"
+  "artifactVersion":"1.2.0",
+  "library":"feign"
 }
 ```
 
@@ -518,7 +537,7 @@ Then you will receieve a JSON response with the URL to download the zipped code.
 Guidelines for Contribution
 ---------------------------
 
-Please refer to this [page](https://github.com/swagger-api/swagger-codegen/wiki/Guidelines-for-Contribution)
+Please refer to this [page](https://github.com/swagger-api/swagger-codegen/blob/master/CONTRIBUTING.md)
 
 License
 -------
