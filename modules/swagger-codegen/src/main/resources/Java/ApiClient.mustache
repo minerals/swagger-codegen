@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 import java.util.TimeZone;
 
 import java.net.URLEncoder;
@@ -54,6 +55,11 @@ public class ApiClient {
 
   private DateFormat dateFormat;
 
+  // for automatic retries
+  private int maxNumRetries = 3;
+  private int backoffSlotLength = 250; // in ms
+  private Random rand = new Random();
+
   public ApiClient() {
     // Use RFC3339 format for date and datetime.
     // See http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14
@@ -83,6 +89,36 @@ public class ApiClient {
    */
   public void setTimeout(Integer timeout) {
     getClient().setReadTimeout(timeout);
+  }
+
+  /**
+   * Get the maximum number of retries to attempt on 5xx errors.
+   */
+  public int getMaxNumRetries() {
+    return maxNumRetries;
+  }
+
+  /**
+   * Set the maximum number of retries to use when invoking an API call.
+   * Retries are only performed on server errors (5xx).
+   */
+  public void setMaxNumRetries(int numRetries) {
+    this.maxNumRetries = maxNumRetries;
+  }
+
+  /**
+   * Get the slot length for exponential backoff between retries.
+   */
+  public int getBackoffSlotLength() {
+    return backoffSlotLength;
+  }
+
+  /**
+   * Set the slot length for exponential backoff between retries.
+   * @param backoffSlotLength The new slot length, in ms
+   */
+  public void setBackoffSlotLength(int backoffSlotLength) {
+    this.backoffSlotLength = backoffSlotLength;
   }
 
   /**
@@ -555,6 +591,27 @@ public class ApiClient {
   }
 
   /**
+   * Wait a randomized amount of time based on an exponential backoff.
+   * (See https://en.wikipedia.org/wiki/Exponential_backoff). The length of the
+   * backoff is controlled by the maxNumRetries and backoffSlotLength parameters.
+   *
+   * @param numRetried The number of retries prior to this backoff
+   * @returns Nothing. Sleeps the current thread for a random duration between 0 ms and
+   *                   backoffSlotLength*(2^(numRetried+1)-1) ms.
+   */
+  protected void backoff(int numRetried) {
+    try {
+      int retryNum = numRetried + 1;
+      int numSlots = (int)(Math.pow(2, retryNum)) - 1;
+      int chosenSlot = rand.nextInt(numSlots+1);
+      int backoffTime = chosenSlot * backoffSlotLength;
+      Thread.sleep(backoffTime);
+    } catch (InterruptedException e) {
+      // do nothing
+    }
+  }
+
+  /**
    * Invoke API by sending HTTP request with the given options.
    *
    * @param path The sub-path of the HTTP URL
@@ -571,36 +628,48 @@ public class ApiClient {
    */
    public <T> T invokeAPI(String path, String method, List<Pair> queryParams, Object body, byte[] binaryBody, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[] authNames, TypeRef returnType) throws ApiException {
 
-    ClientResponse response = getAPIResponse(path, method, queryParams, body, binaryBody, headerParams, formParams, accept, contentType, authNames);
+    int retry = 0;
+    while (retry <= maxNumRetries) {
+      ClientResponse response = getAPIResponse(path, method, queryParams, body, binaryBody, headerParams, formParams, accept, contentType, authNames);
 
-    statusCode = response.getStatusInfo().getStatusCode();
-    responseHeaders = response.getHeaders();
+      statusCode = response.getStatusInfo().getStatusCode();
+      responseHeaders = response.getHeaders();
 
-    if(response.getStatusInfo() == ClientResponse.Status.NO_CONTENT) {
-      return null;
-    } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
-      if (returnType == null)
+      if (response.getStatusInfo() == ClientResponse.Status.NO_CONTENT) {
         return null;
-      else
-        return deserialize(response, returnType);
-    } else {
-      String message = "error";
-      String respBody = null;
-      if (response.hasEntity()) {
-        try {
-          respBody = String.valueOf(response.getEntity(String.class));
-          message = respBody;
-        } catch (RuntimeException e) {
-          // e.printStackTrace();
+      } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
+        if (returnType == null)
+          return null;
+        else
+          return deserialize(response, returnType);
+      } else {
+        if ((response.getStatusInfo().getFamily() != Family.SERVER_ERROR) ||
+            (retry == maxNumRetries)) {
+          String message = "error";
+          String respBody = null;
+          if (response.hasEntity()) {
+            try {
+              respBody = String.valueOf(response.getEntity(String.class));
+              message = respBody;
+            } catch (RuntimeException e) {
+              // e.printStackTrace();
+            }
+          }
+          throw new ApiException(
+            response.getStatusInfo().getStatusCode(),
+            message,
+            response.getHeaders(),
+            respBody);
+        } else {
+          backoff(retry);
+          retry += 1;
         }
       }
-      throw new ApiException(
-        response.getStatusInfo().getStatusCode(),
-        message,
-        response.getHeaders(),
-        respBody);
     }
+
+    throw new AssertionError("should have exited before reaching here");
   }
+
  /**
    * Invoke API by sending HTTP request with the given options - return binary result
    *
@@ -618,40 +687,49 @@ public class ApiClient {
    */
  public byte[] invokeBinaryAPI(String path, String method, List<Pair> queryParams, Object body, byte[] binaryBody, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[]authNames) throws ApiException {
 
-    ClientResponse response = getAPIResponse(path, method, queryParams, body, binaryBody, headerParams, formParams, accept, contentType, authNames);
+    int retry = 0;
+    while (retry <= maxNumRetries) {
+      ClientResponse response = getAPIResponse(path, method, queryParams, body, binaryBody, headerParams, formParams, accept, contentType, authNames);
 
-    if(response.getStatusInfo() == ClientResponse.Status.NO_CONTENT) {
-      return null;
-    }
-    else if(response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
-      if(response.hasEntity()) {
-    	DataInputStream stream = new DataInputStream(response.getEntityInputStream());
-    	byte[] data = new byte[response.getLength()];
-    	try {
-    	  stream.readFully(data);
-    	} catch (IOException ex) {
-    	  throw new ApiException(500, "Error obtaining binary response data");
-    	}
-        return data;
+      if (response.getStatusInfo() == ClientResponse.Status.NO_CONTENT) {
+        return null;
       }
-      else {
-        return new byte[0];
-      }
-    }
-    else {
-      String message = "error";
-      if(response.hasEntity()) {
-        try{
-          message = String.valueOf(response.getEntity(String.class));
+      else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
+        if (response.hasEntity()) {
+          DataInputStream stream = new DataInputStream(response.getEntityInputStream());
+          byte[] data = new byte[response.getLength()];
+          try {
+            stream.readFully(data);
+          } catch (IOException ex) {
+            throw new ApiException(500, "Error obtaining binary response data");
+          }
+          return data;
+        } else {
+          return new byte[0];
         }
-        catch (RuntimeException e) {
-          // e.printStackTrace();
+      } else {
+        if ((response.getStatusInfo().getFamily() != Family.SERVER_ERROR) ||
+            (retry == maxNumRetries)) {
+          String message = "error";
+          if (response.hasEntity()) {
+            try{
+              message = String.valueOf(response.getEntity(String.class));
+            }
+            catch (RuntimeException e) {
+              // e.printStackTrace();
+            }
+          }
+          throw new ApiException(
+            response.getStatusInfo().getStatusCode(),
+            message);
+        } else {
+          backoff(retry);
+          retry += 1;
         }
       }
-      throw new ApiException(
-                response.getStatusInfo().getStatusCode(),
-                message);
     }
+
+    throw new AssertionError("should have exited before reaching here");
   }
 
   /**
