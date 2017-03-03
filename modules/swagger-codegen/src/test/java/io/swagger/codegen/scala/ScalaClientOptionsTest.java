@@ -22,6 +22,7 @@ public class ScalaClientOptionsTest extends AbstractOptionsTest {
         return clientCodegen;
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected void setExpectations() {
         new Expectations(clientCodegen) {{
@@ -30,6 +31,10 @@ public class ScalaClientOptionsTest extends AbstractOptionsTest {
             clientCodegen.setApiPackage(ScalaClientOptionsProvider.API_PACKAGE_VALUE);
             times = 1;
             clientCodegen.setSortParamsByRequiredFlag(Boolean.valueOf(ScalaClientOptionsProvider.SORT_PARAMS_VALUE));
+            times = 1;
+            clientCodegen.setModelPropertyNaming(ScalaClientOptionsProvider.MODEL_PROPERTY_NAMING);
+            times = 1;
+            clientCodegen.setSourceFolder(ScalaClientOptionsProvider.SOURCE_FOLDER_VALUE);
             times = 1;
         }};
     }

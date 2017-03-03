@@ -22,6 +22,7 @@ public class AsyncScalaClientOptionsTest extends AbstractOptionsTest {
         return clientCodegen;
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected void setExpectations() {
         new Expectations(clientCodegen) {{
@@ -30,6 +31,8 @@ public class AsyncScalaClientOptionsTest extends AbstractOptionsTest {
             clientCodegen.setApiPackage(AsyncScalaClientOptionsProvider.API_PACKAGE_VALUE);
             times = 1;
             clientCodegen.setSortParamsByRequiredFlag(Boolean.valueOf(AsyncScalaClientOptionsProvider.SORT_PARAMS_VALUE));
+            times = 1;
+            clientCodegen.setSourceFolder(AsyncScalaClientOptionsProvider.SOURCE_FOLDER_VALUE);
             times = 1;
         }};
     }

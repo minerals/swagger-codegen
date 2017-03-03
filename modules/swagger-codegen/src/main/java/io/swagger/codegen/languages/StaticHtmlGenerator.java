@@ -1,5 +1,6 @@
 package io.swagger.codegen.languages;
 
+import io.swagger.codegen.CliOption;
 import io.swagger.codegen.CodegenConfig;
 import io.swagger.codegen.CodegenConstants;
 import io.swagger.codegen.CodegenOperation;
@@ -18,12 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 public class StaticHtmlGenerator extends DefaultCodegen implements CodegenConfig {
-    private static final String ALL_OPERATIONS = "";
     protected String invokerPackage = "io.swagger.client";
     protected String groupId = "io.swagger";
     protected String artifactId = "swagger-client";
     protected String artifactVersion = "1.0.0";
-    protected String sourceFolder = "src/main/scala";
 
     public StaticHtmlGenerator() {
         super();
@@ -32,6 +31,17 @@ public class StaticHtmlGenerator extends DefaultCodegen implements CodegenConfig
 
         defaultIncludes = new HashSet<String>();
 
+        cliOptions.add(new CliOption("appName", "short name of the application"));
+        cliOptions.add(new CliOption("appDescription", "description of the application"));
+        cliOptions.add(new CliOption("infoUrl", "a URL where users can get more information about the application"));
+        cliOptions.add(new CliOption("infoEmail", "an email address to contact for inquiries about the application"));
+        cliOptions.add(new CliOption("licenseInfo", "a short description of the license"));
+        cliOptions.add(new CliOption("licenseUrl", "a URL pointing to the full license"));
+        cliOptions.add(new CliOption(CodegenConstants.INVOKER_PACKAGE, CodegenConstants.INVOKER_PACKAGE_DESC));
+        cliOptions.add(new CliOption(CodegenConstants.GROUP_ID, CodegenConstants.GROUP_ID_DESC));
+        cliOptions.add(new CliOption(CodegenConstants.ARTIFACT_ID, CodegenConstants.ARTIFACT_ID_DESC));
+        cliOptions.add(new CliOption(CodegenConstants.ARTIFACT_VERSION, CodegenConstants.ARTIFACT_VERSION_DESC));
+        
         additionalProperties.put("appName", "Swagger Sample");
         additionalProperties.put("appDescription", "A sample swagger server");
         additionalProperties.put("infoUrl", "https://helloreverb.com");
@@ -50,14 +60,23 @@ public class StaticHtmlGenerator extends DefaultCodegen implements CodegenConfig
         importMapping = new HashMap<String, String>();
     }
 
+    @Override
+    public String escapeText(String input) {
+        // newline escaping disabled for HTML documentation for markdown to work correctly
+        return input;
+    }
+
+    @Override
     public CodegenType getTag() {
         return CodegenType.DOCUMENTATION;
     }
 
+    @Override
     public String getName() {
         return "html";
     }
 
+    @Override
     public String getHelp() {
         return "Generates a static HTML file.";
     }
@@ -87,19 +106,16 @@ public class StaticHtmlGenerator extends DefaultCodegen implements CodegenConfig
         return objs;
     }
 
+
     @Override
-    public void addOperationToGroup(String tag, String resourcePath, Operation operation, CodegenOperation co, Map<String, List<CodegenOperation>> operations) {
-        List<CodegenOperation> opList = operations.get(ALL_OPERATIONS);
-        if (opList == null) {
-            opList = new ArrayList<CodegenOperation>();
-            operations.put(ALL_OPERATIONS, opList);
-        }
-        for (CodegenOperation addedOperation : opList) {
-            if (addedOperation.operationId.equals(co.operationId) && addedOperation.path.equals(co.path) && addedOperation.httpMethod.equals(co.httpMethod)) {
-                addedOperation.tags.addAll(co.tags);
-                return;
-            }
-        }
-        opList.add(co);
+    public String escapeQuotationMark(String input) {
+        // just return the original string
+        return input;
+    }
+
+    @Override
+    public String escapeUnsafeCharacters(String input) {
+        // just return the original string
+        return input;
     }
 }

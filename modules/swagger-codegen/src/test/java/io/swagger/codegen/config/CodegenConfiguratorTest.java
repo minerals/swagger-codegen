@@ -15,6 +15,7 @@ import mockit.Injectable;
 import mockit.Mocked;
 import mockit.StrictExpectations;
 import mockit.Tested;
+import org.apache.commons.lang3.SerializationUtils;
 import org.testng.annotations.Test;
 
 import java.nio.file.Paths;
@@ -25,6 +26,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+@SuppressWarnings("static-method")
 public class CodegenConfiguratorTest {
 
     @Mocked
@@ -45,6 +47,7 @@ public class CodegenConfiguratorTest {
     @Tested
     CodegenConfigurator configurator;
 
+    @SuppressWarnings("unused")
     @Test
     public void testVerbose() throws Exception {
 
@@ -75,6 +78,7 @@ public class CodegenConfiguratorTest {
         assertValueInMap(clientOptInput.getConfig().additionalProperties(), CodegenConstants.TEMPLATE_DIR, toAbsolutePathDir(templateDir));
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testSystemProperties() throws Exception {
 
@@ -153,12 +157,16 @@ public class CodegenConfiguratorTest {
     public void testAdditionalProperties() throws Exception {
 
         configurator.addAdditionalProperty("foo", "bar")
-                .addAdditionalProperty("hello", "world");
+                .addAdditionalProperty("hello", "world")
+                .addAdditionalProperty("supportJava6", false)
+                .addAdditionalProperty("useRxJava", true);
 
         final ClientOptInput clientOptInput = setupAndRunGenericTest(configurator);
 
         assertValueInMap(clientOptInput.getConfig().additionalProperties(), "foo", "bar");
         assertValueInMap(clientOptInput.getConfig().additionalProperties(), "hello", "world");
+        assertValueInMap(clientOptInput.getConfig().additionalProperties(), "supportJava6", false);
+        assertValueInMap(clientOptInput.getConfig().additionalProperties(), "useRxJava", true);
     }
 
     @Test
@@ -238,10 +246,14 @@ public class CodegenConfiguratorTest {
     @Test
     public void testDynamicProperties() throws Exception {
         configurator.addDynamicProperty(CodegenConstants.LOCAL_VARIABLE_PREFIX, "_");
+        configurator.addDynamicProperty("supportJava6", false);
+        configurator.addDynamicProperty("useRxJava", true);
 
         final ClientOptInput clientOptInput = setupAndRunGenericTest(configurator);
 
         assertValueInMap(clientOptInput.getConfig().additionalProperties(), CodegenConstants.LOCAL_VARIABLE_PREFIX, "_");
+        assertValueInMap(clientOptInput.getConfig().additionalProperties(), "supportJava6", false);
+        assertValueInMap(clientOptInput.getConfig().additionalProperties(), "useRxJava", true);
     }
 
     @Test
@@ -284,8 +296,18 @@ public class CodegenConfiguratorTest {
 
         assertEquals(configurator.getDynamicProperties().size(), 1);
         assertValueInMap(configurator.getDynamicProperties(), CodegenConstants.LOCAL_VARIABLE_PREFIX, "_");
+
+        assertEquals(configurator.getIgnoreFileOverride(), "/path/to/override/.swagger-codegen-ignore");
     }
 
+    @Test
+    public void testCodegenConfiguratorIsSerializable() {
+        final CodegenConfigurator configurator = CodegenConfigurator.fromFile("src/test/resources/sampleConfig.json");
+        // Simply ensure that the object can be serialized
+        SerializationUtils.serialize(configurator);
+    }
+
+    @SuppressWarnings("unused")
     private ClientOptInput setupAndRunGenericTest(CodegenConfigurator configurator) {
 
         final String spec = "swagger.yaml";
@@ -315,10 +337,11 @@ public class CodegenConfiguratorTest {
         return result;
     }
 
-    private String toAbsolutePathDir(String outputDir) {
+    private static String toAbsolutePathDir(String outputDir) {
         return Paths.get(outputDir).toAbsolutePath().toAbsolutePath().toString();
     }
 
+    @SuppressWarnings("unused")
     private void setupStandardExpectations(final String spec, final String languageName, final String auth, final CodegenConfig config) {
 
         new StrictExpectations() {{
@@ -339,7 +362,7 @@ public class CodegenConfiguratorTest {
         }};
     }
 
-    private void assertValueInMap(Map map, String propertyKey, String expectedPropertyValue) {
+    private static void assertValueInMap(Map<?, ?> map, String propertyKey, Object expectedPropertyValue) {
         assertTrue(map.containsKey(propertyKey));
         assertEquals(map.get(propertyKey), expectedPropertyValue);
     }

@@ -10,14 +10,14 @@ import java.util.List;
 
 import io.swagger.model.*;
 
+import java.util.List;
 import io.swagger.model.User;
-import java.util.*;
 
-@javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaInflectorServerCodegen", date = "2015-11-30T10:22:45.081-08:00")
+
 public class UserController  {
   /** 
    * Uncomment and implement as you see fit.  These operations will map
-   * Direclty to operation calls from the routing logic.  Because the inflector
+   * Directly to operation calls from the routing logic.  Because the inflector
    * Code allows you to implement logic incrementally, they are disabled.
    **/
 
@@ -40,6 +40,18 @@ public class UserController  {
   */
 
   /*
+    public ResponseContext deleteUser(RequestContext request , String username) {
+        return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
+    }
+  */
+
+  /*
+    public ResponseContext getUserByName(RequestContext request , String username) {
+        return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
+    }
+  */
+
+  /*
     public ResponseContext loginUser(RequestContext request , String username, String password) {
         return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
     }
@@ -52,19 +64,7 @@ public class UserController  {
   */
 
   /*
-    public ResponseContext getUserByName(RequestContext request , String username) {
-        return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
-    }
-  */
-
-  /*
     public ResponseContext updateUser(RequestContext request , String username, User body) {
-        return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
-    }
-  */
-
-  /*
-    public ResponseContext deleteUser(RequestContext request , String username) {
         return new ResponseContext().status(Status.INTERNAL_SERVER_ERROR).entity( "Not implemented" );
     }
   */

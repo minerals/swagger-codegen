@@ -5,8 +5,6 @@ import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Swagger;
 import io.swagger.models.properties.*;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.*;
 import java.io.File;
 
@@ -22,6 +20,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
    * @return  the CodegenType for this generator
    * @see     io.swagger.codegen.CodegenType
    */
+  @Override
   public CodegenType getTag() {
     return CodegenType.CLIENT;
   }
@@ -32,6 +31,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
    * 
    * @return the friendly name for the generator
    */
+  @Override
   public String getName() {
     return "jmeter";
   }
@@ -42,6 +42,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
    * 
    * @return A string value for the help message
    */
+  @Override
   public String getHelp() {
     return "Generates a JMeter .jmx file.";
   }
@@ -52,7 +53,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
     // set the output folder here
     outputFolder = "generated-code/JMeterCodegen";
 
-    /**
+    /*
      * Api classes.  You can write classes for each Api file with the apiTemplateFiles map.
      * as with models, add multiple entries with different extensions for multiple files per
      * class
@@ -63,23 +64,23 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
 
     apiTemplateFiles.put("testdata-localhost.mustache", ".csv");
 
-    /**
+    /*
      * Template Location.  This is the location which templates will be read from.  The generator
      * will use the resource stream to attempt to read the templates.
      */
-    templateDir = "JMeter";
+    embeddedTemplateDir = templateDir = "JMeter";
 
-    /**
+    /*
      * Api Package.  Optional, if needed, this can be used in templates
      */
     apiPackage = "";
 
-    /**
+    /*
      * Model Package.  Optional, if needed, this can be used in templates
      */
     modelPackage = "";
 
-    /**
+    /*
      * Reserved words.  Override this with reserved words specific to your language
      */
     reservedWords = new HashSet<String> (
@@ -88,7 +89,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
         "sample2")
     );
 
-    /**
+    /*
      * Additional Properties.  These values can be passed to the templates and
      * are available in models, apis, and supporting files
      */
@@ -97,6 +98,7 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
 //    supportingFiles.add(new SupportingFile("testdata-localhost.mustache", "input", "testdata-localhost.csv"));
   }
 
+  @Override
   public void preprocessSwagger(Swagger swagger) {
     if (swagger != null && swagger.getPaths() != null) {
       for (String pathname : swagger.getPaths().keySet()) {
@@ -117,15 +119,19 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
    * 
    * @return the escaped term
    */
-  @Override
-  public String escapeReservedWord(String name) {
-    return "_" + name;  // add an underscore to the name
-  }
+    @Override
+    public String escapeReservedWord(String name) {           
+        if(this.reservedWordsMappings().containsKey(name)) {
+            return this.reservedWordsMappings().get(name);
+        }
+        return "_" + name;
+    }
 
   /**
    * Location to write model files.  You can use the modelPackage() as defined when the class is
    * instantiated
    */
+  @Override
   public String modelFileFolder() {
     return outputFolder + "/" + sourceFolder + "/" + modelPackage().replace('.', File.separatorChar);
   }
@@ -180,4 +186,16 @@ public class JMeterCodegen extends DefaultCodegen implements CodegenConfig {
       type = swaggerType;
     return toModelName(type);
   }
+
+  @Override
+  public String escapeQuotationMark(String input) {
+    // remove ' to avoid code injection
+    return input.replace("'", "");
+  }
+
+  @Override
+  public String escapeUnsafeCharacters(String input) {
+    return input.replace("*/", "*_/").replace("/*", "/_*");
+  }
+
 }

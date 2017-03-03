@@ -33,7 +33,7 @@ import static com.google.common.base.Joiner.on;
         "specify, and includes default templates to include.")
 public class Meta implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Meta.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Meta.class);
 
     private static final String TEMPLATE_DIR_CLASSPATH = "codegen";
     private static final String MUSTACHE_EXTENSION = ".mustache";
@@ -53,7 +53,7 @@ public class Meta implements Runnable {
     @Override
     public void run() {
         final File targetDir = new File(outputFolder);
-        LOG.info("writing to folder [{}]", targetDir.getAbsolutePath());
+        LOGGER.info("writing to folder [{}]", targetDir.getAbsolutePath());
 
         String mainClass = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, name) + "Generator";
 
@@ -68,12 +68,8 @@ public class Meta implements Runnable {
                         "src/main/resources/META-INF/services", "io.swagger.codegen.CodegenConfig")
         );
 
-        String swaggerVersion = this.getClass().getPackage().getImplementationVersion();
-        // if the code is running outside of the jar (i.e. from the IDE), it will not have the version available.
-        // let's default it with something.
-        if (swaggerVersion==null) {
-            swaggerVersion = "2.1.3";
-        }
+        String swaggerVersion = Version.readVersionFromResources();
+
         Map<String, Object> data = new ImmutableMap.Builder<String, Object>()
                 .put("generatorPackage", targetPackage)
                 .put("generatorClass", mainClass)
@@ -93,7 +89,7 @@ public class Meta implements Runnable {
      * @param data      - map with additional params needed to process templates
      * @return converter object to pass to lambdaj
      */
-    private Converter<SupportingFile, File> processFiles(final File targetDir, final Map<String, Object> data) {
+    private static Converter<SupportingFile, File> processFiles(final File targetDir, final Map<String, Object> data) {
         return new Converter<SupportingFile, File>() {
             private DefaultGenerator generator = new DefaultGenerator();
 
@@ -108,13 +104,13 @@ public class Meta implements Runnable {
                     String formatted = template;
 
                     if (support.templateFile.endsWith(MUSTACHE_EXTENSION)) {
-                        LOG.info("writing file to {}", outputFile.getAbsolutePath());
+                        LOGGER.info("writing file to {}", outputFile.getAbsolutePath());
                         formatted = Mustache.compiler().withLoader(loader(generator))
                                 .defaultValue("")
                                 .compile(template)
                                 .execute(data);
                     } else {
-                        LOG.info("copying file to {}", outputFile.getAbsolutePath());
+                        LOGGER.info("copying file to {}", outputFile.getAbsolutePath());
                     }
 
                     FileUtils.writeStringToFile(outputFile, formatted);
@@ -133,8 +129,9 @@ public class Meta implements Runnable {
      * @param generator - class with reader getter
      * @return loader for template
      */
-    private Mustache.TemplateLoader loader(final DefaultGenerator generator) {
+    private static Mustache.TemplateLoader loader(final DefaultGenerator generator) {
         return new Mustache.TemplateLoader() {
+            @Override
             public Reader getTemplate(String name) {
                 return generator.getTemplateReader(TEMPLATE_DIR_CLASSPATH
                         + File.separator + name.concat(MUSTACHE_EXTENSION));
@@ -148,7 +145,7 @@ public class Meta implements Runnable {
      * @param packageName - package name to convert
      * @return relative path
      */
-    private String asPath(String packageName) {
+    private static String asPath(String packageName) {
         return packageName.replace(".", File.separator);
     }
 }

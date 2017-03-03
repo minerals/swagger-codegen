@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("static-method")
 public class ExampleGeneratorTest {
 
     @Test(description = "check handling of recursive models")
@@ -49,12 +50,12 @@ public class ExampleGeneratorTest {
                 types.add(XML);
                 Assert.assertEquals(example, "<Pair>\n" +
                         "  <Node>\n" +
-                        "    <name>string</name>\n" +
+                        "    <name>aeiou</name>\n" +
                         "    <wrappedChildren>\n" +
                         "    </wrappedChildren>\n" +
                         "  </Node>\n" +
                         "  <Node>\n" +
-                        "    <name>string</name>\n" +
+                        "    <name>aeiou</name>\n" +
                         "    <wrappedChildren>\n" +
                         "    </wrappedChildren>\n" +
                         "  </Node>\n" +

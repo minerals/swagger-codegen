@@ -22,6 +22,7 @@ public class ScalatraServerOptionsTest extends AbstractOptionsTest {
         return clientCodegen;
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected void setExpectations() {
         new Expectations(clientCodegen) {{
@@ -30,6 +31,8 @@ public class ScalatraServerOptionsTest extends AbstractOptionsTest {
             clientCodegen.setApiPackage(ScalatraServerOptionsProvider.API_PACKAGE_VALUE);
             times = 1;
             clientCodegen.setSortParamsByRequiredFlag(Boolean.valueOf(ScalatraServerOptionsProvider.SORT_PARAMS_VALUE));
+            times = 1;
+            clientCodegen.setSourceFolder(ScalatraServerOptionsProvider.SOURCE_FOLDER_VALUE);
             times = 1;
         }};
     }

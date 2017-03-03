@@ -3,6 +3,7 @@ package io.swagger.codegen.languages;
 import io.swagger.codegen.CodegenConfig;
 import io.swagger.codegen.CodegenConstants;
 import io.swagger.codegen.CodegenType;
+import io.swagger.codegen.CodegenOperation;
 import io.swagger.codegen.DefaultCodegen;
 import io.swagger.codegen.SupportingFile;
 import io.swagger.models.properties.ArrayProperty;
@@ -13,6 +14,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig {
     protected String invokerPackage;
@@ -37,7 +42,7 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
 
         embeddedTemplateDir = templateDir = "silex";
 
-        reservedWords = new HashSet<String>(
+        setReservedWordsLowerCase(
                 Arrays.asList(
                         "__halt_compiler", "abstract", "and", "array", "as", "break", "callable", "case", "catch", "class", "clone", "const", "continue", "declare", "default", "die", "do", "echo", "else", "elseif", "empty", "enddeclare", "endfor", "endforeach", "endif", "endswitch", "endwhile", "eval", "exit", "extends", "final", "for", "foreach", "function", "global", "goto", "if", "implements", "include", "include_once", "instanceof", "insteadof", "interface", "isset", "list", "namespace", "new", "or", "print", "private", "protected", "public", "require", "require_once", "return", "static", "switch", "throw", "trait", "try", "unset", "use", "var", "while", "xor")
         );
@@ -65,7 +70,7 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
         instantiationTypes.put("array", "array");
         instantiationTypes.put("map", "map");
 
-        // ref: https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#data-types
+        // ref: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types
         typeMapping = new HashMap<String, String>();
         typeMapping.put("integer", "int");
         typeMapping.put("long", "int");
@@ -81,6 +86,9 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
         typeMapping.put("array", "array");
         typeMapping.put("list", "array");
         typeMapping.put("object", "object");
+        //TODO binary should be mapped to byte array
+        // mapped to String as a workaround
+        typeMapping.put("binary", "string");
 
         supportingFiles.add(new SupportingFile("README.mustache", packagePath.replace('/', File.separatorChar), "README.md"));
         supportingFiles.add(new SupportingFile("composer.json", packagePath.replace('/', File.separatorChar), "composer.json"));
@@ -88,28 +96,35 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
         supportingFiles.add(new SupportingFile(".htaccess", packagePath.replace('/', File.separatorChar), ".htaccess"));
     }
 
+    @Override
     public CodegenType getTag() {
         return CodegenType.SERVER;
     }
 
+    @Override
     public String getName() {
         return "silex-PHP";
     }
 
+    @Override
     public String getHelp() {
         return "Generates a Silex server library.";
     }
 
     @Override
-    public String escapeReservedWord(String name) {
+    public String escapeReservedWord(String name) {           
+        if(this.reservedWordsMappings().containsKey(name)) {
+            return this.reservedWordsMappings().get(name);
+        }
         return "_" + name;
     }
-
+    
     @Override
     public String apiFileFolder() {
         return (outputFolder + "/" + apiPackage()).replace('/', File.separatorChar);
     }
 
+    @Override
     public String modelFileFolder() {
         return (outputFolder + "/" + modelPackage()).replace('/', File.separatorChar);
     }
@@ -148,6 +163,7 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
         return toModelName(type);
     }
 
+    @Override
     public String toDefaultValue(Property p) {
         return "null";
     }
@@ -157,7 +173,7 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
     public String toVarName(String name) {
         // return the name in underscore style
         // PhoneNumber => phone_number
-        name = underscore(name);
+        name = underscore(name); // FIXME: a parameter should not be assigned. Also declare the methods parameters as 'final'.
 
         // parameter name starting with number won't compile
         // need to escape it by appending _ at the beginning
@@ -177,7 +193,7 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
     @Override
     public String toModelName(String name) {
         // model name cannot use reserved keyword
-        if (reservedWords.contains(name)) {
+        if (isReservedWord(name)) {
             escapeReservedWord(name); // e.g. return => _return
         }
 
@@ -190,6 +206,40 @@ public class SilexServerCodegen extends DefaultCodegen implements CodegenConfig 
     public String toModelFilename(String name) {
         // should be the same as the model name
         return toModelName(name);
+    }
+
+    @Override
+    public String escapeQuotationMark(String input) {
+        // remove ' to avoid code injection
+        return input.replace("'", "");
+    }
+
+    @Override
+    public String escapeUnsafeCharacters(String input) {
+        return input.replace("*/", "*_/").replace("/*", "/_*");
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
+        Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+        List<CodegenOperation> operationList = (List<CodegenOperation>) operations.get("operation");
+        for (CodegenOperation op : operationList) {
+            String path = new String(op.path);
+            String[] items = path.split("/", -1);
+            String opsPath = "";
+            int pathParamIndex = 0;
+
+            for (int i = 0; i < items.length; ++i) {
+                if (items[i].matches("^\\{(.*)\\}$")) { // wrap in {}
+                    // camelize path variable
+                    items[i] = "{" + camelize(items[i].substring(1, items[i].length()-1), true) + "}";
+                }
+            }
+
+            op.path = StringUtils.join(items, "/");
+        }
+
+        return objs;
     }
 
 }

@@ -1,11 +1,18 @@
 package {{package}};
 
 import {{invokerPackage}}.ApiClient;
+{{#legacyDates}}
+import {{invokerPackage}}.ParamExpander;
+{{/legacyDates}}
 
 {{#imports}}import {{import}};
 {{/imports}}
 
-{{^fullJavaUtil}}import java.util.*;
+{{^fullJavaUtil}}
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 {{/fullJavaUtil}}
 import feign.*;
 
@@ -16,17 +23,21 @@ public interface {{classname}} extends ApiClient.Api {
   /**
    * {{summary}}
    * {{notes}}
-{{#allParams}}   * @param {{paramName}} {{description}}
-{{/allParams}}   * @return {{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}
+{{#allParams}}
+    * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+{{/allParams}}
+{{#returnType}}
+   * @return {{returnType}}
+{{/returnType}}
    */
-  @RequestLine("{{httpMethod}} {{{path}}}{{#hasQueryParams}}?{{/hasQueryParams}}{{#queryParams}}{{paramName}}={{=<% %>=}}{<%paramName%>}<%={{ }}=%>{{#hasMore}}&{{/hasMore}}{{/queryParams}}")
+  @RequestLine("{{httpMethod}} {{{path}}}{{#hasQueryParams}}?{{/hasQueryParams}}{{#queryParams}}{{baseName}}={{=<% %>=}}{<%paramName%>}<%={{ }}=%>{{#hasMore}}&{{/hasMore}}{{/queryParams}}")
   @Headers({
-    "Content-type: {{vendorExtensions.x-contentType}}",
-    "Accepts: {{vendorExtensions.x-accepts}}",{{#headerParams}}
-    "{{paramName}}: {{=<% %>=}}{<%paramName%>}<%={{ }}=%>"{{#hasMore}},
+    "Content-Type: {{vendorExtensions.x-contentType}}",
+    "Accept: {{vendorExtensions.x-accepts}}",{{#headerParams}}
+    "{{baseName}}: {{=<% %>=}}{<%paramName%>}<%={{ }}=%>"{{#hasMore}},
     {{/hasMore}}{{/headerParams}}
   })
-  {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}void {{/returnType}}{{nickname}}({{#allParams}}{{^isBodyParam}}@Param("{{paramName}}") {{/isBodyParam}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+  {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}void {{/returnType}}{{nickname}}({{#allParams}}{{^isBodyParam}}{{^legacyDates}}@Param("{{paramName}}") {{/legacyDates}}{{#legacyDates}}@Param(value="{{paramName}}", expander=ParamExpander.class) {{/legacyDates}}{{/isBodyParam}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
   {{/operation}}
 {{/operations}}
 }

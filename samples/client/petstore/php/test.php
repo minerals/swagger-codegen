@@ -5,15 +5,14 @@ require_once(__DIR__ . '/SwaggerClient-php/autoload.php');
 //ini_set('display_errors', 1);
 //error_reporting(~0);
 
-// to enable logging
-//Swagger\Client\Configuration::$debug = true;
-//Swagger\Client\Configuration::$debug_file = '/var/tmp/php_debug.log';
-
 // to debug report
 print Swagger\Client\Configuration::toDebugReport();
 
 // to change temp folder path
 Swagger\Client\Configuration::getDefaultConfiguration()->setTempFolderPath('/var/tmp/php/');
+// to enable logging
+Swagger\Client\Configuration::getDefaultConfiguration()->setDebug(true);
+Swagger\Client\Configuration::getDefaultConfiguration()->setDebugFile('/var/tmp/php_debug.log');
 
 $petId = 10005; // ID of pet that needs to be fetched
 try {
@@ -56,7 +55,7 @@ try {
 
 } catch (Swagger\Client\ApiException $e) {
     echo 'Caught exception: ', $e->getMessage(), "\n";
-    echo 'HTTP response headers: ', $e->getResponseHeaders(), "\n";
-    echo 'HTTP response body: ', $e->getResponseBody(), "\n";
+    echo 'HTTP response headers: ', print_r($e->getResponseHeaders(), true), "\n";
+    echo 'HTTP response body: ', print_r($e->getResponseBody(), true), "\n";
     echo 'HTTP status code: ', $e->getCode(), "\n";
 }
