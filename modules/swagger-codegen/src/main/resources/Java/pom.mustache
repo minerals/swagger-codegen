@@ -6,33 +6,9 @@
   <packaging>jar</packaging>
   <name>{{artifactId}}</name>
   <version>{{artifactVersion}}</version>
-  <url>{{artifactUrl}}</url>
-  <description>{{artifactDescription}}</description>
-  <scm>
-    <connection>{{scmConnection}}</connection>
-    <developerConnection>{{scmDeveloperConnection}}</developerConnection>
-    <url>{{scmUrl}}</url>
-  </scm>
   <prerequisites>
     <maven>2.2.0</maven>
   </prerequisites>
-
-  <licenses>
-    <license>
-      <name>{{licenseName}}</name>
-      <url>{{licenseUrl}}</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <developers>
-    <developer>
-      <name>{{developerName}}</name>
-      <email>{{developerEmail}}</email>
-      <organization>{{developerOrganization}}</organization>
-      <organizationUrl>{{developerOrganizationUrl}}</organizationUrl>
-    </developer>
-  </developers>
 
   <build>
     <plugins>
@@ -194,6 +170,11 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
+      <version>${jersey-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
       <version>${jersey-version}</version>
     </dependency>
     <dependency>
