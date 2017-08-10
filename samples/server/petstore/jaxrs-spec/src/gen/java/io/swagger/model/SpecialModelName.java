@@ -19,7 +19,7 @@ public class SpecialModelName   {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public Long getSpecialPropertyName() {
     return specialPropertyName;
   }
@@ -66,3 +66,4 @@ public class SpecialModelName   {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

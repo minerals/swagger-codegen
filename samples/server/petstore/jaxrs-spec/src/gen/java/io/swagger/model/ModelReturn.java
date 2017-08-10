@@ -23,7 +23,7 @@ public class ModelReturn   {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public Integer getReturn() {
     return _return;
   }
@@ -70,3 +70,4 @@ public class ModelReturn   {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

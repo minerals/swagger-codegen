@@ -19,7 +19,7 @@ public class Client   {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public String getClient() {
     return client;
   }
@@ -66,3 +66,4 @@ public class Client   {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

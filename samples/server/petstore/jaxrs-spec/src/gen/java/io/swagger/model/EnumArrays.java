@@ -84,7 +84,7 @@ public enum ArrayEnumEnum {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public JustSymbolEnum getJustSymbol() {
     return justSymbol;
   }
@@ -100,7 +100,7 @@ public enum ArrayEnumEnum {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public List<ArrayEnumEnum> getArrayEnum() {
     return arrayEnum;
   }
@@ -149,3 +149,4 @@ public enum ArrayEnumEnum {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

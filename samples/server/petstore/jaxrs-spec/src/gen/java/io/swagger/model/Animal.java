@@ -22,7 +22,7 @@ public class Animal   {
   }
 
   
-  @ApiModelProperty(example = "null", required = true, value = "")
+  @ApiModelProperty(required = true, value = "")
   @NotNull
   public String getClassName() {
     return className;
@@ -39,7 +39,7 @@ public class Animal   {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public String getColor() {
     return color;
   }
@@ -88,3 +88,4 @@ public class Animal   {
     return o.toString().replace("\n", "\n    ");
   }
 }
+

@@ -20,7 +20,7 @@ public class Cat extends Animal  {
   }
 
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   public Boolean getDeclawed() {
     return declawed;
   }
@@ -67,3 +67,4 @@ public class Cat extends Animal  {
     return o.toString().replace("\n", "\n    ");
   }
 }
+
