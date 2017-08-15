@@ -1234,8 +1234,9 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
      * @param name the name of the property
      * @return getter name based on naming convention
      */
-    public String toBooleanGetter(String name) {
-        return "is" + getterAndSetterCapitalize(name);
-    }
+    // NOTE: AKS - currently disabled to be backwards-compatible with older clients (i.e. use "get" instead of "is")
+    // public String toBooleanGetter(String name) {
+    //     return "is" + getterAndSetterCapitalize(name);
+    // }
 
 }

@@ -715,7 +715,9 @@ public class JavaModelTest {
         Assert.assertEquals(cp.baseType, "Boolean");
         Assert.assertTrue(cp.isNotContainer);
         Assert.assertTrue(cp.isBoolean);
-        Assert.assertEquals(cp.getter, "isProperty");
+        // NOTE: AKS - currently reverted to be backwards-compatible with older clients (i.e. use "get" instead of "is")
+        // Assert.assertEquals(cp.getter, "isProperty");
+        Assert.assertEquals(cp.getter, "getProperty");
     }
 
 }
